@@ -68,8 +68,6 @@ window.G = window.G || {};
     if (ev.cancelable) ev.preventDefault();
     var p = canvasPos(ev.touches && ev.touches[0] ? ev.touches[0] : ev);
     lastTap = p;
-    press("a");
-    setTimeout(function () { release("a"); }, 60);
   }
   function consumeTap() {
     var t = lastTap;
