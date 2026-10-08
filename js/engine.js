@@ -116,6 +116,11 @@ window.G = window.G || {};
     root.appendChild(dpad); root.appendChild(ab); root.appendChild(sys);
   }
 
+  function setTouchVisible(v) {
+    var root = U.$("#touch");
+    if (root) root.classList.toggle("hidden", !v);
+  }
+
   /* ---------------- scenes ---------------- */
   function pushScene(s) {
     s.engine = Engine;
@@ -442,6 +447,12 @@ window.G = window.G || {};
     this.maxLen = maxLen; this.cb = cb;
     this.ci = 0;
   }
+  NamingScene.prototype.enter = function () {
+    setTouchVisible(false); // direct tap entry; buttons would cover the grid
+  };
+  NamingScene.prototype.exit = function () {
+    setTouchVisible(true);
+  };
   NamingScene.prototype.update = function () {
     var cols = 10;
     var n = NAME_CHARS.length + 2; // + BACK + DONE
@@ -461,6 +472,8 @@ window.G = window.G || {};
     }
   };
   NamingScene.prototype.hitTest = function (x, y) {
+    // Big DONE button first
+    if (x >= W/2 - 80 && x <= W/2 + 80 && y >= H - 52 && y <= H - 16) return 999;
     var cols = 10, cw = 40, chh = 26, ox = (W - cols * cw) / 2, oy = 120;
     var n = NAME_CHARS.length + 2;
     for (var i = 0; i < n; i++) {
@@ -472,6 +485,7 @@ window.G = window.G || {};
   NamingScene.prototype.pick = function (i) {
     var n = NAME_CHARS.length;
     try { if (G.Audio) G.Audio.sfx("select"); } catch (e) {}
+    if (i === 999) { i = n + 1; } // big DONE button = OK
     if (i < n) {
       if (this.name.length < this.maxLen) this.name += NAME_CHARS[i];
     } else if (i === n) {
@@ -488,17 +502,21 @@ window.G = window.G || {};
     drawPanel(c, W / 2 - 130, 52, 260, 34);
     text(c, this.name + "_", W / 2, 60, { align: "center", size: 12, bold: true });
     var cols = 10, cw = 40, chh = 26, ox = (W - cols * cw) / 2, oy = 120;
-    var n = NAME_CHARS.length + 2;
+    var nc = NAME_CHARS.length, n = nc + 2;
     for (var i = 0; i < n; i++) {
       var cx = ox + (i % cols) * cw, cy = oy + Math.floor(i / cols) * chh;
-      var label = i < n ? NAME_CHARS[i] : (i === n ? "⌫" : "OK");
+      var label = i < nc ? NAME_CHARS[i] : (i === nc ? "⌫" : "OK");
       if (i === this.ci) { c.fillStyle = "#c02020"; c.fillRect(cx + 2, cy + 2, cw - 4, chh - 4); }
       c.fillStyle = i === this.ci ? "#fff" : "#c8c8d0";
       c.font = "bold 12px 'Courier New',monospace";
       c.textAlign = "center"; c.textBaseline = "top";
       c.fillText(label, cx + cw / 2, cy + 6);
     }
-    text(c, "A: pick   B: delete", W / 2, H - 24, { align: "center", color: "#888", size: 8 });
+    // Big DONE button
+    var doneY = H - 52;
+    c.fillStyle = "#2a6e2a"; c.fillRect(W/2 - 80, doneY, 160, 36);
+    c.strokeStyle = "#7fff7f"; c.lineWidth = 2; c.strokeRect(W/2 - 80, doneY, 160, 36);
+    text(c, "DONE ✓", W / 2, doneY + 10, { align: "center", color: "#fff", size: 14, bold: true });
   };
 
   /* ---------------- boot ---------------- */
@@ -540,7 +558,7 @@ window.G = window.G || {};
     W: W, H: H, TILE: TILE,
     init: init, resize: resize,
     pressed: pressed, isHeld: isHeld, _press: press, _release: release,
-    consumeTap: consumeTap,
+    consumeTap: consumeTap, setTouchVisible: setTouchVisible,
     pushScene: pushScene, popScene: popScene, replaceScene: replaceScene,
     current: current, clearTo: clearTo, fadeTo: fadeTo,
     dialog: dialog, textBox: textBox, menuList: menuList, yesNo: yesNo,
