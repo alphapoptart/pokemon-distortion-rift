@@ -28,7 +28,7 @@ html, body {
   /* size set by JS to preserve 3:2 aspect */
 }
 
-/* ---------- touch overlay ---------- */
+/* ---------- touch overlay: Delta-style GBA controls ---------- */
 #touch {
   position: fixed; inset: 0;
   pointer-events: none;
@@ -38,38 +38,94 @@ html, body {
 #touch.hidden { opacity: 0; }
 #touch.hidden .tbtn { pointer-events: none; }
 
+/* Base button: Delta-style dark translucent with soft edge */
 .tbtn {
   pointer-events: auto;
   position: absolute;
   display: flex; align-items: center; justify-content: center;
-  background: rgba(255,255,255,0.07);
-  border: 2px solid rgba(255,255,255,0.25);
-  border-radius: 12px;
-  color: rgba(255,255,255,0.65);
-  font-size: 18px; font-weight: bold;
+  background: rgba(40, 40, 50, 0.55);
+  border: 1.5px solid rgba(255, 255, 255, 0.30);
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: bold;
   touch-action: none;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
-.tbtn:active { background: rgba(255,255,255,0.22); }
+.tbtn:active {
+  background: rgba(90, 90, 110, 0.70);
+  transform: scale(0.94);
+}
 
-/* d-pad: bottom-left, compact */
-.dpad { position: absolute; left: 10px; bottom: calc(14px + env(safe-area-inset-bottom)); width: 132px; height: 132px; pointer-events: none; }
-.dpad .tbtn { width: 44px; height: 44px; font-size: 16px; }
-.dpad .tup   { left: 44px; top: 0; }
-.dpad .tdown { left: 44px; top: 88px; }
-.dpad .tleft { left: 0; top: 44px; }
-.dpad .tright{ left: 88px; top: 44px; }
+/* D-pad: Delta-style cross, bottom-left */
+.dpad {
+  position: absolute;
+  left: 18px;
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  width: 168px; height: 168px;
+  pointer-events: none;
+}
+.dpad .tbtn {
+  width: 56px; height: 56px;
+  font-size: 20px;
+  border-radius: 16px;
+}
+.dpad .tup    { left: 56px; top: 0;    border-radius: 16px 16px 8px 8px; }
+.dpad .tdown  { left: 56px; top: 112px; border-radius: 8px 8px 16px 16px; }
+.dpad .tleft  { left: 0;   top: 56px;  border-radius: 16px 8px 8px 16px; }
+.dpad .tright { left: 112px; top: 56px; border-radius: 8px 16px 16px 8px; }
+/* center cap to complete the cross look */
+.dpad::after {
+  content: "";
+  position: absolute;
+  left: 56px; top: 56px;
+  width: 56px; height: 56px;
+  background: rgba(40, 40, 50, 0.55);
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  pointer-events: none;
+}
 
-/* A/B: bottom-right, compact */
-.abtns { position: absolute; right: 10px; bottom: calc(14px + env(safe-area-inset-bottom)); width: 132px; height: 132px; pointer-events: none; }
-.abtns .tbtn { width: 56px; height: 56px; border-radius: 50%; font-size: 18px; }
-.abtns .bbtn { right: 68px; bottom: 6px; border-color: rgba(255,120,120,0.45); color: rgba(255,150,150,0.8); }
-.abtns .abtn { right: 6px; bottom: 44px; border-color: rgba(120,255,120,0.45); color: rgba(150,255,150,0.8); }
+/* A/B: Delta GBA layout — big A right, smaller B down-left */
+.abtns {
+  position: absolute;
+  right: 18px;
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  width: 170px; height: 150px;
+  pointer-events: none;
+}
+.abtns .tbtn { border-radius: 50%; }
+.abtns .abtn {
+  width: 76px; height: 76px;
+  right: 0; bottom: 58px;
+  font-size: 26px;
+  background: rgba(180, 60, 70, 0.45);
+  border-color: rgba(255, 130, 140, 0.50);
+}
+.abtns .abtn:active { background: rgba(200, 80, 90, 0.65); }
+.abtns .bbtn {
+  width: 64px; height: 64px;
+  right: 88px; bottom: 0;
+  font-size: 22px;
+  background: rgba(60, 90, 180, 0.45);
+  border-color: rgba(130, 160, 255, 0.50);
+}
+.abtns .bbtn:active { background: rgba(80, 110, 200, 0.65); }
 
-/* start/select pills: bottom-center, smaller */
-.sysbtns { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(8px + env(safe-area-inset-bottom)); display: flex; gap: 10px; pointer-events: none; }
+/* Start/Select: small pills, bottom-center */
+.sysbtns {
+  position: absolute;
+  left: 50%; transform: translateX(-50%);
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  display: flex; gap: 16px;
+  pointer-events: none;
+}
 .sysbtns .tbtn {
-  position: static; width: 68px; height: 28px; border-radius: 14px;
-  font-size: 9px; letter-spacing: 1px; opacity: 0.7;
+  position: static;
+  width: 76px; height: 32px;
+  border-radius: 16px;
+  font-size: 10px; letter-spacing: 2px;
+  opacity: 0.85;
 }
 
 /* hide touch controls on devices with a fine pointer (desktop) */
@@ -107,21 +163,22 @@ html, body {
     align-items: center;
     justify-items: center;
   }
-  .dpad { grid-area: dpad; position: relative; left: auto; bottom: auto; width: 150px; height: 150px; }
-  .dpad .tbtn { width: 50px; height: 50px; font-size: 18px; }
-  .dpad .tup   { left: 50px; top: 0; }
-  .dpad .tdown { left: 50px; top: 100px; }
-  .dpad .tleft { left: 0; top: 50px; }
-  .dpad .tright{ left: 100px; top: 50px; }
-  .abtns { grid-area: abtns; position: relative; right: auto; bottom: auto; width: 150px; height: 150px; }
-  .abtns .tbtn { width: 62px; height: 62px; font-size: 20px; }
-  .abtns .bbtn { right: 76px; bottom: 8px; }
-  .abtns .abtn { right: 8px; bottom: 52px; }
+  .dpad { grid-area: dpad; position: relative; left: auto; bottom: auto; width: 180px; height: 180px; }
+  .dpad .tbtn { width: 60px; height: 60px; font-size: 22px; border-radius: 16px; }
+  .dpad .tup    { left: 60px; top: 0; border-radius: 16px 16px 8px 8px; }
+  .dpad .tdown  { left: 60px; top: 120px; border-radius: 8px 8px 16px 16px; }
+  .dpad .tleft  { left: 0; top: 60px; border-radius: 16px 8px 8px 16px; }
+  .dpad .tright { left: 120px; top: 60px; border-radius: 8px 16px 16px 8px; }
+  .dpad::after { left: 60px; top: 60px; width: 60px; height: 60px; }
+  .abtns { grid-area: abtns; position: relative; right: auto; bottom: auto; width: 180px; height: 160px; }
+  .abtns .abtn { width: 82px; height: 82px; font-size: 28px; right: 0; bottom: 62px; }
+  .abtns .bbtn { width: 68px; height: 68px; font-size: 24px; right: 94px; bottom: 0; }
   .sysbtns {
     grid-area: sys;
     position: relative; left: auto; bottom: auto; transform: none;
-    display: flex; gap: 12px; justify-content: center;
+    display: flex; gap: 20px; justify-content: center;
     width: 100%;
+    padding-top: 4px;
   }
-  .sysbtns .tbtn { width: 90px; height: 36px; font-size: 11px; }
+  .sysbtns .tbtn { width: 88px; height: 36px; font-size: 11px; }
 }
