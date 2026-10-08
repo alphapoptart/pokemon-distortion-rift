@@ -749,31 +749,69 @@ window.G = window.G || {};
 
   function drawTrainer(g, kind) {
     var P = TRAINER_PALS[kind] || TRAINER_PALS.grunt;
-    var o = "#101018";
+    var o = "#101018"; // outline
     var y0 = (kind === "kid") ? 8 : 2;
-    g.px(11, y0 + 2, 10, 9, o); g.px(12, y0 + 3, 8, 7, P.skin);
+
     if (kind === "hero") {
-      g.px(10, y0 + 0, 12, 4, o); g.px(11, y0 + 1, 10, 2, P.hair);
-      g.px(19, y0 + 3, 4, 1.6, P.hair);
-    } else if (kind === "nurse") {
-      g.px(11, y0 + 0, 10, 3, o); g.px(12, y0 + 1, 8, 1.4, "#ffffff");
-      g.px(15, y0 - 1, 3, 2, "#ff6070");
-    } else if (kind === "vex" || kind === "umbra-boss") {
-      g.px(11, y0 + 1, 10, 4, o); g.px(12, y0 + 2, 8, 2, P.acc);
+      // Hero: red cap, determined eyes, blue jacket, jeans — Pokemon protagonist style
+      // Cap (red with white front)
+      g.px(10, y0 + 0, 12, 3, o);
+      g.px(11, y0 + 1, 10, 2, "#e03030");
+      g.px(11, y0 + 1, 4, 2, "#ffffff"); // white front panel
+      g.px(20, y0 + 2, 3, 1, "#e03030"); // cap brim
+      // Hair (brown, peeking out)
+      g.px(11, y0 + 3, 10, 2, "#6b4226");
+      // Face
+      g.px(11, y0 + 2, 10, 9, o);
+      g.px(12, y0 + 3, 8, 7, P.skin);
+      // Eyes (determined, with shine)
+      g.px(13, y0 + 5, 2, 3, "#ffffff"); g.px(17, y0 + 5, 2, 3, "#ffffff");
+      g.px(13, y0 + 6, 2, 2, "#202028"); g.px(17, y0 + 6, 2, 2, "#202028");
+      g.px(13, y0 + 6, 1, 1, "#ffffff"); g.px(17, y0 + 6, 1, 1, "#ffffff"); // shine
+      // Smile
+      g.px(15, y0 + 8, 2, 1, "#803020");
+      // Jacket (blue with white collar)
+      var ty = y0 + 11;
+      g.px(10, ty, 12, 10, o);
+      g.px(11, ty + 1, 10, 8, "#2850c8");
+      g.px(11, ty + 1, 10, 2, "#ffffff"); // collar
+      g.px(15, ty + 3, 2, 6, "#1a38a0"); // zipper line
+      g.px(12, ty + 4, 2, 2, "#f0f0f0"); // badge
+      // Arms (skin + blue sleeves)
+      g.px(7, ty + 1, 3, 7, o); g.px(8, ty + 2, 1, 5, "#2850c8"); g.px(8, ty + 7, 1, 1, P.skin);
+      g.px(22, ty + 1, 3, 7, o); g.px(23, ty + 2, 1, 5, "#2850c8"); g.px(23, ty + 7, 1, 1, P.skin);
+      // Jeans
+      var ly = ty + 10;
+      g.px(11, ly, 10, 8, o);
+      g.px(12, ly + 1, 8, 6, "#3a5a9a");
+      g.px(12, ly + 1, 3, 6, "#2e4a82"); // left leg shade
+      // Shoes (red/white sneakers)
+      g.px(11, ly + 8, 4, 3, o); g.px(12, ly + 9, 2, 1, "#e03030"); g.px(12, ly + 8, 2, 1, "#ffffff");
+      g.px(17, ly + 8, 4, 3, o); g.px(18, ly + 9, 2, 1, "#e03030"); g.px(18, ly + 8, 2, 1, "#ffffff");
     } else {
-      g.px(10, y0 + 1, 12, 3, o); g.px(11, y0 + 2, 10, 1.6, P.hair);
+      // Other characters: keep existing but with slightly more detail
+      var P2 = P, o2 = o, y02 = y0;
+      g.px(11, y02 + 2, 10, 9, o2); g.px(12, y02 + 3, 8, 7, P2.skin);
+      if (kind === "nurse") {
+        g.px(11, y02 + 0, 10, 3, o2); g.px(12, y02 + 1, 8, 1.4, "#ffffff");
+        g.px(15, y02 - 1, 3, 2, "#ff6070");
+      } else if (kind === "vex" || kind === "umbra-boss") {
+        g.px(11, y02 + 1, 10, 4, o2); g.px(12, y02 + 2, 8, 2, P2.acc);
+      } else {
+        g.px(10, y02 + 1, 12, 3, o2); g.px(11, y02 + 2, 10, 1.6, P2.hair);
+      }
+      g.px(13, y02 + 5, 2, 2, "#ffffff"); g.px(17, y02 + 5, 2, 2, "#ffffff");
+      g.px(13.4, y02 + 5.6, 1.2, 1.2, "#101018"); g.px(17.4, y02 + 5.6, 1.2, 1.2, "#101018");
+      var ty2 = y02 + 11;
+      g.px(11, ty2, 10, 10, o2); g.px(12, ty2 + 1, 8, 8, P2.top);
+      if (kind === "prof" || kind === "scientist") { g.px(15, ty2 + 1, 2, 8, "#ffffff"); }
+      if (kind === "champ" || kind === "elite") { g.px(9, ty2 + 1, 2, 12, P2.acc); g.px(21, ty2 + 1, 2, 12, P2.acc); }
+      g.px(7, ty2 + 1, 3, 8, o2); g.px(8, ty2 + 2, 1.8, 6, P2.skin);
+      g.px(22, ty2 + 1, 3, 8, o2); g.px(22.2, ty2 + 2, 1.8, 6, P2.skin);
+      var ly2 = ty2 + 10;
+      g.px(12, ly2, 3.4, 8, o2); g.px(12.6, ly2 + 1, 2.2, 6, P2.bot);
+      g.px(16.6, ly2, 3.4, 8, o2); g.px(17.2, ly2 + 1, 2.2, 6, P2.bot);
     }
-    g.px(13, y0 + 5, 2, 2, "#ffffff"); g.px(17, y0 + 5, 2, 2, "#ffffff");
-    g.px(13.4, y0 + 5.6, 1.2, 1.2, "#101018"); g.px(17.4, y0 + 5.6, 1.2, 1.2, "#101018");
-    var ty = y0 + 11;
-    g.px(11, ty, 10, 10, o); g.px(12, ty + 1, 8, 8, P.top);
-    if (kind === "prof" || kind === "scientist") { g.px(15, ty + 1, 2, 8, "#ffffff"); }
-    if (kind === "champ" || kind === "elite") { g.px(9, ty + 1, 2, 12, P.acc); g.px(21, ty + 1, 2, 12, P.acc); }
-    g.px(7, ty + 1, 3, 8, o); g.px(8, ty + 2, 1.8, 6, P.skin);
-    g.px(22, ty + 1, 3, 8, o); g.px(22.2, ty + 2, 1.8, 6, P.skin);
-    var ly = ty + 10;
-    g.px(12, ly, 3.4, 8, o); g.px(12.6, ly + 1, 2.2, 6, P.bot);
-    g.px(16.6, ly, 3.4, 8, o); g.px(17.2, ly + 1, 2.2, 6, P.bot);
   }
 
   function trainer(kind, opts) {

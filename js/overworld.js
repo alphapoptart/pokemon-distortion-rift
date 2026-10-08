@@ -53,56 +53,147 @@ window.G = window.G || {};
   function drawTile(g, t, px, py, tx, ty) {
     var rng = U.RNG(tx * 733 + ty * 91);
     function r() { return rng(); }
-    if (t === "#") {          // building / wall
-      g.fillStyle = "#8a7a6a"; g.fillRect(px, py, 16, 16);
-      g.fillStyle = "#6e5f52"; g.fillRect(px, py, 16, 4);
-      g.fillStyle = "#9c8c7c";
-      for (var i = 0; i < 3; i++) g.fillRect(px + 2 + i * 5, py + 7 + (i % 2) * 4, 3, 2);
-    } else if (t === ".") {  // path
-      g.fillStyle = "#d8c090"; g.fillRect(px, py, 16, 16);
-      g.fillStyle = "#c8ae80";
-      if (r() > 0.5) g.fillRect(px + 3, py + 5, 3, 2);
-      if (r() > 0.5) g.fillRect(px + 10, py + 10, 3, 2);
-    } else if (t === ",") {  // tall grass
-      g.fillStyle = "#58a838"; g.fillRect(px, py, 16, 16);
-      g.fillStyle = "#3f8a28";
-      for (var k = 0; k < 5; k++) g.fillRect(px + Math.floor(r() * 14), py + Math.floor(r() * 12), 2, 5);
-      g.fillStyle = "#6cc048";
-      for (var k2 = 0; k2 < 3; k2++) g.fillRect(px + Math.floor(r() * 14), py + Math.floor(r() * 12), 2, 3);
-    } else if (t === "=") {  // road
-      g.fillStyle = "#b8b8b8"; g.fillRect(px, py, 16, 16);
-      g.fillStyle = "#989898"; g.fillRect(px, py + 7, 16, 2);
-    } else if (t === "*") {  // flowers
-      g.fillStyle = "#58a838"; g.fillRect(px, py, 16, 16);
-      var cols = ["#f05878", "#f0e038", "#f0f0f0"];
-      for (var f = 0; f < 3; f++) {
-        g.fillStyle = cols[Math.floor(r() * 3)];
-        g.fillRect(px + 2 + Math.floor(r() * 11), py + 2 + Math.floor(r() * 11), 3, 3);
+    // Helper for pixel dithering
+    function px2(x, y, w, h, color) { g.fillStyle = color; g.fillRect(px + x, py + y, w, h); }
+
+    if (t === "#") {          // building / wall — brick with detail
+      px2(0, 0, 16, 16, "#9a8a72");
+      // brick pattern
+      g.fillStyle = "#7a6a55";
+      for (var by = 0; by < 16; by += 4) {
+        g.fillRect(px, py + by, 16, 1);
+        for (var bx = (by % 8 === 0 ? 0 : 4); bx < 16; bx += 8) {
+          g.fillRect(px + bx, py + by, 1, 4);
+        }
       }
-    } else if (t === "s") {  // sand
-      g.fillStyle = "#e8d898"; g.fillRect(px, py, 16, 16);
-      g.fillStyle = "#d8c888";
-      if (r() > 0.4) g.fillRect(px + 4, py + 6, 4, 2);
-    } else if (t === "~") {  // water
-      g.fillStyle = "#3868d8"; g.fillRect(px, py, 16, 16);
-      g.fillStyle = "#5890f0";
-      g.fillRect(px + 2, py + 4 + Math.floor(r() * 6), 5, 1);
-      g.fillRect(px + 9, py + 4 + Math.floor(r() * 6), 5, 1);
-    } else if (t === "T") {  // tree
-      g.fillStyle = "#58a838"; g.fillRect(px, py, 16, 16);
-      g.fillStyle = "#6e4a28"; g.fillRect(px + 6, py + 8, 4, 8);
-      g.fillStyle = "#2f7a20"; g.fillRect(px + 2, py + 1, 12, 9);
-      g.fillStyle = "#3f9a30"; g.fillRect(px + 4, py + 3, 5, 4);
-    } else if (t === "o") {  // rock
-      g.fillStyle = "#58a838"; g.fillRect(px, py, 16, 16);
-      g.fillStyle = "#888890"; g.fillRect(px + 3, py + 4, 10, 9);
-      g.fillStyle = "#a8a8b0"; g.fillRect(px + 5, py + 6, 4, 3);
-    } else if (t === "D") {  // door mat
-      g.fillStyle = "#a87848"; g.fillRect(px, py, 16, 16);
-      g.fillStyle = "#885e38"; g.fillRect(px + 2, py + 2, 12, 12);
-      g.fillStyle = "#c89868"; g.fillRect(px + 2, py + 2, 12, 3);
+      // top highlight
+      px2(0, 0, 16, 2, "#b8a888");
+      // bottom shadow
+      px2(0, 14, 16, 2, "#5a4a3a");
+    } else if (t === ".") {  // path — sandy with pebbles
+      px2(0, 0, 16, 16, "#e0c898");
+      px2(0, 0, 16, 1, "#f0d8a8");
+      px2(0, 15, 16, 1, "#c0a878");
+      // pebbles
+      g.fillStyle = "#c8b088";
+      for (var p = 0; p < 4; p++) {
+        var pxx = Math.floor(r() * 13), pyy = Math.floor(r() * 13);
+        g.fillRect(px + pxx, py + pyy, 2, 2);
+      }
+      g.fillStyle = "#f0d8a8";
+      for (var p2 = 0; p2 < 2; p2++) {
+        g.fillRect(px + Math.floor(r() * 14), py + Math.floor(r() * 14), 1, 1);
+      }
+    } else if (t === ",") {  // tall grass — dense Pokemon-style
+      px2(0, 0, 16, 16, "#4a9a3a");
+      // darker base patches
+      g.fillStyle = "#3a7a2e";
+      for (var d = 0; d < 6; d++) {
+        g.fillRect(px + Math.floor(r() * 14), py + Math.floor(r() * 14), 3, 2);
+      }
+      // grass blades — multiple shades
+      var blades = ["#5aba4a", "#6aca5a", "#3a8a2e", "#7ada6a"];
+      for (var k = 0; k < 18; k++) {
+        g.fillStyle = blades[Math.floor(r() * blades.length)];
+        var bx = Math.floor(r() * 15), by = Math.floor(r() * 11);
+        var bh = 3 + Math.floor(r() * 4);
+        g.fillRect(px + bx, py + by, 1, bh);
+        // blade tip
+        if (r() > 0.5) g.fillRect(px + bx, py + by - 1, 1, 1);
+      }
+    } else if (t === "=") {  // road — asphalt with center line
+      px2(0, 0, 16, 16, "#a8a8a8");
+      px2(0, 0, 16, 1, "#c8c8c8");
+      px2(0, 15, 16, 1, "#888888");
+      // center dashes
+      g.fillStyle = "#e8e8e8";
+      for (var cx = 1; cx < 16; cx += 6) g.fillRect(px + cx, py + 7, 3, 2);
+      // texture
+      g.fillStyle = "#989898";
+      for (var tx2 = 0; tx2 < 3; tx2++) {
+        g.fillRect(px + Math.floor(r() * 15), py + Math.floor(r() * 15), 1, 1);
+      }
+    } else if (t === "*") {  // flowers — detailed with stems
+      px2(0, 0, 16, 16, "#4a9a3a");
+      var fcols = ["#f05878", "#f0e038", "#f0f0f0", "#f088b0"];
+      for (var f = 0; f < 4; f++) {
+        var fx = 2 + Math.floor(r() * 11), fy = 2 + Math.floor(r() * 11);
+        // stem
+        g.fillStyle = "#2e6e22"; g.fillRect(px + fx + 1, py + fy + 2, 1, 4);
+        // petals (plus shape)
+        g.fillStyle = fcols[Math.floor(r() * fcols.length)];
+        g.fillRect(px + fx, py + fy, 3, 3);
+        g.fillStyle = "#ffffff";
+        g.fillRect(px + fx + 1, py + fy + 1, 1, 1); // center
+      }
+    } else if (t === "s") {  // sand — warm with ripples
+      px2(0, 0, 16, 16, "#ecd9a0");
+      g.fillStyle = "#dcc890";
+      for (var s = 0; s < 3; s++) {
+        var sy = 3 + s * 5 + Math.floor(r() * 2);
+        for (var sx = 0; sx < 16; sx += 4) {
+          if (r() > 0.3) g.fillRect(px + sx, py + sy, 2, 1);
+        }
+      }
+      px2(0, 0, 16, 1, "#f8e8b0");
+    } else if (t === "~") {  // water — layered waves
+      px2(0, 0, 16, 16, "#3a7ad8");
+      // deep spots
+      g.fillStyle = "#2a5ab8";
+      for (var w = 0; w < 3; w++) {
+        g.fillRect(px + Math.floor(r() * 12), py + Math.floor(r() * 12), 4, 2);
+      }
+      // wave highlights
+      g.fillStyle = "#6aa8f0";
+      var woff = Math.floor(r() * 4);
+      g.fillRect(px + 1 + woff, py + 3, 6, 1);
+      g.fillRect(px + 8 - woff, py + 9, 6, 1);
+      g.fillStyle = "#8ac0ff";
+      g.fillRect(px + 3 + woff, py + 12, 4, 1);
+      // sparkle
+      if (r() > 0.6) { g.fillStyle = "#c0e0ff"; g.fillRect(px + Math.floor(r()*14), py + Math.floor(r()*14), 1, 1); }
+    } else if (t === "T") {  // tree — layered canopy
+      px2(0, 0, 16, 16, "#4a9a3a"); // grass base
+      // trunk with bark texture
+      px2(7, 9, 3, 7, "#6e4a28");
+      g.fillStyle = "#5a3a20"; g.fillRect(px + 7, py + 9, 1, 7);
+      g.fillStyle = "#8a6238"; g.fillRect(px + 9, py + 10, 1, 5);
+      // canopy — multiple layers for depth
+      g.fillStyle = "#1e5a14"; // shadow layer
+      g.beginPath(); g.arc(px + 8, py + 7, 7, 0, Math.PI * 2); g.fill();
+      g.fillStyle = "#2f7a20"; // mid layer
+      g.beginPath(); g.arc(px + 7, py + 6, 6, 0, Math.PI * 2); g.fill();
+      g.fillStyle = "#3f9a30"; // highlight layer
+      g.beginPath(); g.arc(px + 6, py + 5, 4, 0, Math.PI * 2); g.fill();
+      // leaf sparkle
+      g.fillStyle = "#5aba4a";
+      g.fillRect(px + 4, py + 3, 2, 2);
+      g.fillRect(px + 9, py + 6, 1, 1);
+    } else if (t === "o") {  // rock — shaded boulder
+      px2(0, 0, 16, 16, "#4a9a3a");
+      // rock body
+      g.fillStyle = "#6a6a72"; g.fillRect(px + 3, py + 5, 10, 8);
+      g.fillStyle = "#888890"; g.fillRect(px + 4, py + 6, 8, 6);
+      // highlight
+      g.fillStyle = "#b8b8c0"; g.fillRect(px + 5, py + 6, 4, 2);
+      g.fillRect(px + 4, py + 8, 2, 3);
+      // shadow
+      g.fillStyle = "#4a4a52"; g.fillRect(px + 3, py + 11, 10, 2);
+      g.fillRect(px + 11, py + 5, 2, 8);
+      // cracks
+      g.fillStyle = "#5a5a62"; g.fillRect(px + 7, py + 8, 1, 3);
+    } else if (t === "D") {  // door mat — wooden with border
+      px2(0, 0, 16, 16, "#8a6238");
+      // planks
+      g.fillStyle = "#7a5230";
+      for (var pl = 0; pl < 16; pl += 4) g.fillRect(px, py + pl, 16, 1);
+      // border
+      g.fillStyle = "#a87848"; g.fillRect(px, py, 16, 2);
+      g.fillRect(px, py + 14, 16, 2); g.fillRect(px, py, 2, 16); g.fillRect(px + 14, py, 2, 16);
+      // highlight
+      g.fillStyle = "#c89868"; g.fillRect(px + 2, py + 2, 12, 1);
     } else {                 // void
-      g.fillStyle = "#000"; g.fillRect(px, py, 16, 16);
+      g.fillStyle = "#0a0a12"; g.fillRect(px, py, 16, 16);
     }
   }
 
