@@ -446,24 +446,62 @@ window.G = window.G || {};
     this.name = (def || "").slice(0, maxLen);
     this.maxLen = maxLen; this.cb = cb;
     this.ci = 0;
+    this.inputEl = null;
   }
   NamingScene.prototype.enter = function () {
-    setTouchVisible(false); // direct tap entry; buttons would cover the grid
+    // On touch devices, use native keyboard via a real input field
+    if (window.matchMedia && window.matchMedia("(pointer: coarse)").matches) {
+      var input = document.createElement("input");
+      input.type = "text";
+      input.maxLength = this.maxLen;
+      input.value = this.name;
+      input.placeholder = "Enter name";
+      input.autocapitalize = "words";
+      input.autocorrect = "off";
+      // Position over the name display area; canvas may be scaled so use viewport units
+      input.style.cssText = [
+        "position:fixed", "z-index:50",
+        "left:50%", "top:calc(env(safe-area-inset-top) + 52px)",
+        "transform:translateX(-50%)",
+        "width:min(260px,70vw)", "height:38px",
+        "font-family:'Courier New',monospace", "font-size:18px", "font-weight:bold",
+        "text-align:center", "color:#fff",
+        "background:#181822", "border:2px solid #7fff7f", "border-radius:8px",
+        "outline:none", "-webkit-user-select:text", "user-select:text"
+      ].join(";");
+      var self = this;
+      input.addEventListener("input", function () { self.name = input.value.slice(0, self.maxLen); });
+      document.body.appendChild(input);
+      this.inputEl = input;
+      // Focus after a tick so the keyboard opens
+      setTimeout(function () { try { input.focus(); } catch (e) {} }, 300);
+    }
   };
   NamingScene.prototype.exit = function () {
-    setTouchVisible(true);
+    if (this.inputEl && this.inputEl.parentNode) {
+      this.inputEl.parentNode.removeChild(this.inputEl);
+      this.inputEl = null;
+    }
   };
   NamingScene.prototype.update = function () {
-    var cols = 10;
-    var n = NAME_CHARS.length + 2; // + BACK + DONE
-    if (pressed("left")) this.ci = (this.ci - 1 + n) % n;
-    else if (pressed("right")) this.ci = (this.ci + 1) % n;
-    else if (pressed("up")) this.ci = (this.ci - cols + n) % n;
-    else if (pressed("down")) this.ci = (this.ci + cols) % n;
-    else if (pressed("a")) this.pick(this.ci);
-    else if (pressed("b")) {
-      if (this.name.length) this.name = this.name.slice(0, -1);
-      try { if (G.Audio) G.Audio.sfx("bump"); } catch (e) {}
+    var isTouch = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+    // Sync name from native input if present
+    if (this.inputEl) this.name = this.inputEl.value.slice(0, this.maxLen);
+    if (!isTouch) {
+      var cols = 10;
+      var n = NAME_CHARS.length + 2; // + BACK + DONE
+      if (pressed("left")) this.ci = (this.ci - 1 + n) % n;
+      else if (pressed("right")) this.ci = (this.ci + 1) % n;
+      else if (pressed("up")) this.ci = (this.ci - cols + n) % n;
+      else if (pressed("down")) this.ci = (this.ci + cols) % n;
+      else if (pressed("a")) this.pick(this.ci);
+      else if (pressed("b")) {
+        if (this.name.length) {
+          this.name = this.name.slice(0, -1);
+          if (this.inputEl) this.inputEl.value = this.name;
+        }
+        try { if (G.Audio) G.Audio.sfx("bump"); } catch (e) {}
+      }
     }
     var t = consumeTap();
     if (t) {
@@ -497,31 +535,50 @@ window.G = window.G || {};
     }
   };
   NamingScene.prototype.draw = function (c) {
+    var isTouch = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
     c.fillStyle = "#181822"; c.fillRect(0, 0, W, H);
     text(c, "Enter name:", W / 2, 30, { align: "center", color: "#fff", size: 10, bold: true });
-    drawPanel(c, W / 2 - 130, 52, 260, 34);
-    text(c, this.name + "_", W / 2, 60, { align: "center", size: 12, bold: true });
-    var cols = 10, cw = 40, chh = 26, ox = (W - cols * cw) / 2, oy = 120;
-    var nc = NAME_CHARS.length, n = nc + 2;
-    for (var i = 0; i < n; i++) {
-      var cx = ox + (i % cols) * cw, cy = oy + Math.floor(i / cols) * chh;
-      var label = i < nc ? NAME_CHARS[i] : (i === nc ? "⌫" : "OK");
-      if (i === this.ci) { c.fillStyle = "#c02020"; c.fillRect(cx + 2, cy + 2, cw - 4, chh - 4); }
-      c.fillStyle = i === this.ci ? "#fff" : "#c8c8d0";
-      c.font = "bold 12px 'Courier New',monospace";
-      c.textAlign = "center"; c.textBaseline = "top";
-      c.fillText(label, cx + cw / 2, cy + 6);
+    if (isTouch) {
+      // Native keyboard handles input; just show the name and DONE
+      drawPanel(c, W / 2 - 130, 52, 260, 34);
+      text(c, this.name + "_", W / 2, 60, { align: "center", size: 12, bold: true });
+      text(c, "Type using your keyboard, then tap DONE", W / 2, 100,
+           { align: "center", color: "#888", size: 8 });
+    } else {
+      drawPanel(c, W / 2 - 130, 52, 260, 34);
+      text(c, this.name + "_", W / 2, 60, { align: "center", size: 12, bold: true });
+      var cols = 10, cw = 40, chh = 26, ox = (W - cols * cw) / 2, oy = 120;
+      var nc = NAME_CHARS.length, n = nc + 2;
+      for (var i = 0; i < n; i++) {
+        var cx = ox + (i % cols) * cw, cy = oy + Math.floor(i / cols) * chh;
+        var label = i < nc ? NAME_CHARS[i] : (i === nc ? "⌫" : "OK");
+        if (i === this.ci) { c.fillStyle = "#c02020"; c.fillRect(cx + 2, cy + 2, cw - 4, chh - 4); }
+        c.fillStyle = i === this.ci ? "#fff" : "#c8c8d0";
+        c.font = "bold 12px 'Courier New',monospace";
+        c.textAlign = "center"; c.textBaseline = "top";
+        c.fillText(label, cx + cw / 2, cy + 6);
+      }
     }
     // Big DONE button
     var doneY = H - 52;
     c.fillStyle = "#2a6e2a"; c.fillRect(W/2 - 80, doneY, 160, 36);
     c.strokeStyle = "#7fff7f"; c.lineWidth = 2; c.strokeRect(W/2 - 80, doneY, 160, 36);
     text(c, "DONE ✓", W / 2, doneY + 10, { align: "center", color: "#fff", size: 14, bold: true });
+    if (!isTouch) text(c, "A: pick   B: delete", W / 2, H - 60, { align: "center", color: "#888", size: 8 });
   };
 
   /* ---------------- boot ---------------- */
   function resize() {
     if (!canvas) return;
+    // In portrait on touch devices, CSS handles sizing (width:100%, aspect-ratio).
+    // Skip manual sizing so we don't fight the stylesheet.
+    var isPortraitTouch = window.matchMedia &&
+      window.matchMedia("(orientation: portrait) and (pointer: coarse)").matches;
+    if (isPortraitTouch) {
+      canvas.style.width = "";
+      canvas.style.height = "";
+      return;
+    }
     var vw = window.innerWidth, vh = window.innerHeight;
     var s = Math.min(vw / W, vh / H);
     // On desktop allow upscale beyond 2x; on small screens fit exactly.
