@@ -1,0 +1,103 @@
+/* Pokémon: Distortion Rift — GBA-vibe shell: fullscreen black, pixelated canvas,
+   touch controls (dpad / A-B / start-select), safe-area aware. */
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  width: 100%; height: 100%;
+  background: #000;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
+  -webkit-user-select: none; user-select: none;
+  font-family: 'Courier New', monospace;
+}
+
+#wrap {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: #000;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+           env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+#game {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  background: #000;
+  /* size set by JS to preserve 3:2 aspect */
+}
+
+/* ---------- touch overlay ---------- */
+#touch {
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.tbtn {
+  pointer-events: auto;
+  position: absolute;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.10);
+  border: 2px solid rgba(255,255,255,0.35);
+  border-radius: 12px;
+  color: rgba(255,255,255,0.75);
+  font-size: 20px; font-weight: bold;
+  touch-action: none;
+}
+.tbtn:active { background: rgba(255,255,255,0.28); }
+
+/* d-pad: bottom-left cross */
+.dpad { position: absolute; left: 14px; bottom: calc(18px + env(safe-area-inset-bottom)); width: 168px; height: 168px; pointer-events: none; }
+.dpad .tbtn { width: 56px; height: 56px; }
+.dpad .tup   { left: 56px; top: 0; }
+.dpad .tdown { left: 56px; top: 112px; }
+.dpad .tleft { left: 0; top: 56px; }
+.dpad .tright{ left: 112px; top: 56px; }
+
+/* A/B: bottom-right */
+.abtns { position: absolute; right: 14px; bottom: calc(18px + env(safe-area-inset-bottom)); width: 168px; height: 168px; pointer-events: none; }
+.abtns .tbtn { width: 72px; height: 72px; border-radius: 50%; font-size: 22px; }
+.abtns .bbtn { right: 88px; bottom: 8px; border-color: rgba(255,120,120,0.6); color: rgba(255,150,150,0.9); }
+.abtns .abtn { right: 8px; bottom: 56px; border-color: rgba(120,255,120,0.6); color: rgba(150,255,150,0.9); }
+
+/* start/select pills: bottom-center */
+.sysbtns { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(10px + env(safe-area-inset-bottom)); display: flex; gap: 14px; pointer-events: none; }
+.sysbtns .tbtn {
+  position: static; width: 84px; height: 34px; border-radius: 17px;
+  font-size: 10px; letter-spacing: 1px;
+}
+
+/* hide touch controls on devices with a fine pointer (desktop) */
+@media (pointer: fine) {
+  #touch { display: none; }
+}
+
+/* landscape phones: shrink controls a touch */
+@media (max-height: 420px) {
+  .dpad, .abtns { transform: scale(0.85); transform-origin: bottom left; }
+  .abtns { transform-origin: bottom right; }
+}
+
+/* ---------- rotate hint: portrait phones only ---------- */
+#rotate-hint {
+  display: none;
+  position: fixed; inset: 0;
+  z-index: 100;
+  background: #000;
+  flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 18px;
+  color: #fff;
+  text-align: center;
+  font-size: 18px;
+  line-height: 1.5;
+}
+#rotate-hint .rotate-icon { font-size: 64px; animation: tilt 1.6s ease-in-out infinite; }
+@keyframes tilt {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(90deg); }
+}
+@media (orientation: portrait) and (pointer: coarse) {
+  #rotate-hint { display: flex; }
+}
